@@ -1,0 +1,39 @@
+# Preset Node + pnpm. Liga com `tags: ['node-pnpm']` no moon.yml do projeto.
+# Delega para os scripts do package.json; script ausente = no-op (--if-present).
+# Override: `command:` troca a linha inteira (mergeArgs: replace); desligar = `command: 'noop'`.
+inheritedBy:
+  tags: ['node-pnpm']
+  order: 10
+
+implicitInputs:
+  - '!node_modules/**'
+
+taskOptions:
+  mergeArgs: 'replace'
+
+tasks:
+  install:
+    command: 'pnpm install --frozen-lockfile'
+    options:
+      cache: false
+  format-check:
+    command: 'pnpm run --if-present format:check'
+    deps: ['~:install']
+  lint:
+    command: 'pnpm run --if-present lint'
+    deps: ['~:install']
+  typecheck:
+    command: 'pnpm run --if-present typecheck'
+    deps: ['~:install']
+  test:
+    command: 'pnpm run --if-present test'
+    deps: ['~:install']
+  build:
+    command: 'pnpm run --if-present build'
+    deps: ['~:install']
+  test-integration:
+    command: 'pnpm run --if-present test:integration'
+    deps: ['~:install']
+  test-e2e:
+    command: 'pnpm run --if-present test:e2e'
+    deps: ['~:install']

@@ -1,0 +1,27 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: shellcheck scripts/*.sh
+
+      # O moon aceita YAML invalido como erro, mas YAML vazio ou truncado passa calado
+      # (ver README). Aqui todo arquivo tem que parsear e nao ser vazio.
+      - name: YAML valido e nao vazio
+        run: |
+          set -euo pipefail
+          for f in workspace.yml tasks/*.yml; do
+            [ "$(yq 'type' "$f")" = '!!map' ] || { echo "::error file=$f::nao e um mapa YAML"; exit 1; }
+          done

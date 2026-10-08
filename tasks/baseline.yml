@@ -1,0 +1,53 @@
+# SAST baseline da plataforma (SEC-01 segredo commitado, SEC-04 dependencia vulneravel).
+#
+# NAO SOBRESCREVA estas tasks no moon.yml. Elas sao o minimo de seguranca exigido de todo repo;
+# o CI avisa no PR quando o comando resolvido diverge deste arquivo. Para somar varreduras,
+# use a task `sast` (extensao do projeto). Para aceitar um achado conhecido, use o
+# .trivyignore / .gitleaksignore na raiz do repo, que passa por revisao no PR.
+#
+# Herdadas so pelo projeto na raiz do repo (e o unico que tem .moon/workspace.yml na propria
+# pasta): as duas varreduras valem para o repo inteiro -- historico de commits e lockfiles,
+# inclusive o uv.lock/pnpm-lock da raiz de um monorepo.
+#
+# Ferramentas por imagem oficial pinada aqui: a plataforma controla a versao, nada a instalar,
+# o mesmo resultado local e no CI. Localmente exige Docker.
+inheritedBy:
+  file: ['.moon/workspace.yml', '.moon/workspace.yaml']
+  order: 30
+
+tasks:
+  secrets-scan:
+    description: 'SAST baseline (SEC-01): gitleaks nos commits entre MOON_BASE e MOON_HEAD (local: origin/main..HEAD).'
+    # Falha fechado: o gitleaks sai 0 quando o git falha (ex.: "dubious ownership", base
+    # inexistente num clone raso) e reporta "0 commits scanned". Base checada antes, e qualquer
+    # ERR no log do gitleaks reprova a task.
+    script: |
+      base="${MOON_BASE:-origin/main}"; head="${MOON_HEAD:-HEAD}"
+      if ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
+        echo "secrets-scan: base '${base}' nao existe neste clone (historico raso?)" >&2; exit 1
+      fi
+      out="$(docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0='*' \
+        -v "$MOON_WORKSPACE_ROOT:/repo" -w /repo ghcr.io/gitleaks/gitleaks:v8.30.1 \
+        git . --no-banner --no-color --redact --log-opts="${base}..${head}" 2>&1)"; rc=$?
+      echo "$out"
+      if echo "$out" | grep -q ' ERR '; then
+        echo "secrets-scan: o gitleaks nao conseguiu varrer (ver ERR acima); tratado como falha" >&2; exit 1
+      fi
+      exit $rc
+    options:
+      cache: false
+      runInCI: 'always'
+
+  deps-scan:
+    description: 'SAST baseline (SEC-04): trivy fs nas dependencias. Bloqueia CRITICAL com correcao; HIGH/MEDIUM so reporta.'
+    script: >-
+      trivy() { docker run --rm
+      -v "$MOON_WORKSPACE_ROOT:/src" -w /src
+      -v "${TRIVY_CACHE_DIR:-$HOME/.cache/trivy}:/root/.cache/trivy"
+      aquasec/trivy:0.74.0 fs --scanners vuln --quiet "$@" . ; } &&
+      trivy --severity HIGH,MEDIUM --exit-code 0 &&
+      trivy --severity CRITICAL --ignore-unfixed --exit-code 1
+    options:
+      cache: false
+      runInCI: 'always'

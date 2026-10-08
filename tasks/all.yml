@@ -1,0 +1,67 @@
+# Contrato de tasks do CI/CD v3 (plataforma BeGrowth). Fonte: be-growth/moon-platform.
+# O repo do app NAO copia este arquivo: estende por URL com tag, num stub em .moon/tasks/
+#   extends: 'https://raw.githubusercontent.com/be-growth/moon-platform/<tag>/tasks/all.yml'
+# Para mudar o comando de uma task, sobrescreva no moon.yml do projeto.
+#
+# Toda task nasce `noop` (placeholder nativo do moon: sai 0 sem rodar nada).
+# O projeto liga um preset por tag (python-uv, go, node-pnpm) ou sobrescreve a task no moon.yml.
+inheritedBy:
+  order: 0
+
+# Sem inputs explicitos, task de projeto na raiz (repo standalone) nunca e "afetada"
+# e o `moon ci` a pula calado. CHANGELOG.md e version.txt ficam de fora para o merge
+# do Release PR nao disparar rebuild.
+implicitInputs:
+  - '**/*'
+  - '!CHANGELOG.md'
+  - '!version.txt'
+
+taskOptions:
+  runInCI: true
+
+tasks:
+  format-check:
+    description: 'Lint/Format: checa formatacao sem alterar arquivos.'
+    command: 'noop'
+  lint:
+    description: 'Lint/Format: linter do projeto.'
+    command: 'noop'
+  typecheck:
+    description: 'Static analysis: typecheck / analise estatica.'
+    command: 'noop'
+    deps: ['^:sources']
+  test:
+    description: 'Unit tests.'
+    command: 'noop'
+    deps: ['^:sources']
+  sast:
+    description: 'SAST extra do projeto. O baseline da plataforma (gitleaks + trivy) roda fora do moon e nao pode ser desligado.'
+    command: 'noop'
+  build:
+    description: 'Build do artefato (nao e o docker build: esse e da plataforma).'
+    command: 'noop'
+    deps: ['^:sources']
+  test-integration:
+    description: 'Integration tests (dependencias reais: banco, fila...). A infra vem de deps do projeto.'
+    command: 'noop'
+    deps: ['^:sources']
+  test-e2e:
+    description: 'E2E tests (sistema de ponta a ponta: varios processos, UI). A infra vem de deps do projeto.'
+    command: 'noop'
+  # Interna: e o elo "lib mudou -> quem depende dela reroda". typecheck, test, build e
+  # test-integration dependem de `^:sources` (o sources das libs do projeto) e o CI roda
+  # `moon ci --include-relations`: mudou a lib, os dependentes retestam e rebuildam.
+  # Sem deps de proposito: com `deps: ['^:sources']` aqui (lib que depende de lib) a consulta
+  # de afetados do moon 2.5.5 nao termina. Servico declara no manifesto as libs que usa.
+  # runInCI: true -> tasks do CI nao podem depender de task fora do CI (e e noop, custo zero).
+  sources:
+    description: 'Interna: marca o projeto como mudado para quem depende dele.'
+    command: 'noop'
+    options:
+      internal: true
+      runInCI: true
+  publish:
+    description: 'Publicacao de lib versionada. Roda so no release, para o projeto liberado.'
+    command: 'noop'
+    options:
+      runInCI: false

@@ -1,0 +1,31 @@
+# Fragmento de workspace da plataforma BeGrowth (CI/CD v3). O .moon/workspace.yml do repo faz
+#   extends: 'https://raw.githubusercontent.com/be-growth/moon-platform/<tag>/workspace.yml'
+# e acrescenta so o que e dele (projects).
+
+vcs:
+  client: 'git'
+  provider: 'github'
+  defaultBranch: 'main'
+  # Hooks locais do git, gerados pelo moon (`moon sync vcs-hooks`, e em todo sync do moon).
+  # Sao ajuda rapida no commit, nao gate: o gate e o CI (e o titulo do PR, que vira o commit
+  # no squash). `git commit --no-verify` pula os dois.
+  hooks:
+    pre-commit:
+      # Formatacao e lint so dos projetos afetados pelo que esta staged. Sem testes: o commit
+      # tem que ser rapido.
+      - 'moon run :format-check :lint --affected --status staged'
+    # Conventional Commits. Embutido aqui porque o repo do app nao tem copia local de script
+    # nenhum da plataforma. Mesma lista de tipos do pr-checks.yaml -- mantenha as duas iguais.
+    # Aceita tambem as mensagens que o proprio git gera (merge, revert, fixup!/squash!/amend!).
+    commit-msg:
+      - >-
+        head -n 1 "$1" | grep -Eq
+        '^((feat|fix|perf|refactor|docs|test|build|ci|chore|revert)(\([^()]+\))?!?: .+|Merge |Revert "|(fixup|squash|amend)! )'
+        || { echo 'Commit fora do Conventional Commits: <tipo>(<escopo>)!?: <descricao>  ex.: fix(api): corrige timeout [PLBG-1234]' >&2; exit 1; }
+  sync: true
+
+pipeline:
+  # O pipeline nunca mexe em arquivo de dependencia (go.mod/go.sum/go.work, uv.lock, pnpm-lock,
+  # Cargo.lock). Os toolchains ficam ligados so para inferir o grafo; sem isto o moon roda a
+  # instalacao de dependencias deles antes das tasks (a do Go reescreve go.work/go.mod/go.sum).
+  installDependencies: false

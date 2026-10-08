@@ -1,0 +1,21 @@
+# Projetos com imagem. Liga com `tags: ['deployable']` no moon.yml do projeto.
+#
+# `package` e so um marcador: o docker build, o scan e o push sao da plataforma e rodam
+# fora do moon (o dev nao desliga). O workflow descobre quem empacotar com
+#   moon query tasks --affected --downstream deep --upstream none
+# e fica com os projetos cujo `package` saiu afetado. Afeta quando:
+#   - muda um input do proprio projeto (menos CHANGELOG.md/version.txt, ver all.yml);
+#   - muda um input herdado de preset (ex.: /uv.lock no python-uv);
+#   - muda uma lib da qual o projeto depende diretamente (deps ^:sources).
+# NAO troque o --upstream none: com o upstream padrao a consulta nao termina (moon 2.5.5).
+inheritedBy:
+  tags: ['deployable']
+  order: 20
+
+tasks:
+  package:
+    description: 'Marcador do docker build da plataforma (fora do moon).'
+    command: 'noop'
+    deps: ['^:sources']
+    options:
+      runInCI: false

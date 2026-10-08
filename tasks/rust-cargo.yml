@@ -1,0 +1,32 @@
+# Preset Rust + cargo. Liga com `tags: ['rust-cargo']` no moon.yml do projeto (um crate do
+# workspace cargo). Dentro do diretorio de um membro, o cargo seleciona so aquele pacote: cada
+# projeto moon checa o proprio crate, e o moon paraleliza entre eles (o lock do target/
+# serializa a compilacao, sem conflito).
+# Override: `command:` troca a linha inteira (mergeArgs: replace); desligar = `command: 'noop'`.
+inheritedBy:
+  tags: ['rust-cargo']
+  order: 10
+
+# Manifestos do workspace na raiz: mudar dependencia, lock ou toolchain afeta todo crate.
+implicitInputs:
+  - '/Cargo.toml'
+  - '/Cargo.lock'
+  - '/rust-toolchain.toml'
+  - '!target/**'
+
+taskOptions:
+  mergeArgs: 'replace'
+
+tasks:
+  format-check:
+    command: 'cargo fmt --check'
+  lint:
+    command: 'cargo clippy --all-targets --locked -- -D warnings'
+  typecheck:
+    command: 'cargo check --all-targets --locked'
+  test:
+    command: 'cargo test --locked'
+  build:
+    command: 'cargo build --locked'
+  # test-integration fica no noop do contrato: o cargo nao tem convencao unica para separar
+  # integracao (feature, #[ignore], crate de testes). O projeto que tiver sobrescreve.

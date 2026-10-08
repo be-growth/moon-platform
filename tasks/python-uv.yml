@@ -1,0 +1,36 @@
+# Preset Python + uv. Liga com `tags: ['python-uv']` no moon.yml do projeto.
+#
+# mergeArgs: replace -> um override `command:` no moon.yml do projeto troca a linha inteira
+# (sem isso o moon concatena os argumentos herdados com os novos). Para desligar uma task,
+# use `command: 'noop'` (`script: 'noop'` NAO e no-op: o shell procura um binario `noop`).
+inheritedBy:
+  tags: ['python-uv']
+  order: 10
+
+implicitInputs:
+  - '/uv.lock'
+  - '/pyproject.toml'
+
+taskOptions:
+  mergeArgs: 'replace'
+
+tasks:
+  format-check:
+    command: 'uv run --frozen --project $workspaceRoot ruff format --check .'
+  lint:
+    command: 'uv run --frozen --project $workspaceRoot ruff check .'
+  typecheck:
+    command: 'uv run --frozen --project $workspaceRoot mypy .'
+  test:
+    command: 'uv run --frozen --project $workspaceRoot pytest'
+  build:
+    command: 'uv build --out-dir $workspaceRoot/dist'
+  test-integration:
+    # pytest sai 5 quando nao coleta teste nenhum: projeto sem teste de integracao nao reprova.
+    # (Forma de lista + shell: false pelo mesmo motivo do format-check do go.yml.)
+    command:
+      - 'sh'
+      - '-c'
+      - 'uv run --frozen --project $workspaceRoot pytest -m integration; rc=$?; [ "$rc" -eq 5 ] && exit 0; exit "$rc"'
+    options:
+      shell: false

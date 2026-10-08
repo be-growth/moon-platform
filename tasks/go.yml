@@ -1,0 +1,36 @@
+# Preset Go. Liga com `tags: ['go']` no moon.yml do projeto.
+# golangci-lint nao vem no preset (nao e tool do proto): quem quiser sobrescreve `lint`.
+# Override: `command:` troca a linha inteira (mergeArgs: replace); desligar = `command: 'noop'`.
+inheritedBy:
+  tags: ['go']
+  order: 10
+
+implicitInputs:
+  - '!vendor/**'
+
+taskOptions:
+  mergeArgs: 'replace'
+
+tasks:
+  format-check:
+    # gofmt -l sai 0 mesmo listando arquivos; o test -z transforma a lista em falha.
+    # Forma de lista + shell: false: o moon 2.5.5 mantem as aspas de um `command` em texto
+    # dentro do argumento (`sh -c "..."` chega ao sh como '"..."' e falha).
+    command:
+      - 'sh'
+      - '-c'
+      - 'test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }'
+    options:
+      shell: false
+  lint:
+    command: 'go vet ./...'
+  # -o /dev/null: compila tudo sem deixar binario na arvore (modulo com um unico `main`
+  # gravaria o executavel no diretorio do projeto).
+  typecheck:
+    command: 'go build -o /dev/null ./...'
+  test:
+    command: 'go test ./...'
+  build:
+    command: 'go build -o /dev/null ./...'
+  test-integration:
+    command: 'go test -tags integration ./...'
