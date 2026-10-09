@@ -18,4 +18,7 @@ tasks:
     command: 'noop'
     deps: ['^:sources']
     options:
-      runInCI: false
+      # Tem que ser true: o `--affected` do moon ignora task com runInCI false, e o projeto so
+      # entraria no plano como dependente de uma lib alterada. E noop e o CI so roda as fases que
+      # pede pelo nome, entao nada executa.
+      runInCI: true
