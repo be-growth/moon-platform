@@ -18,15 +18,29 @@ taskOptions:
   mergeArgs: 'replace'
 
 tasks:
+  # Instala o toolchain do rust-toolchain.toml (com os components) antes de qualquer cargo. Sem
+  # isto, as tasks cargo em paralelo disparam juntas o auto-install do rustup, que nao aguenta
+  # concorrencia ("could not rename 'downloaded' file"). O mutex serializa so este passo: o
+  # primeiro projeto instala, os demais encontram pronto. As tasks cargo seguem em paralelo.
+  rust-toolchain:
+    command: 'rustup toolchain install'
+    options:
+      mutex: 'rustup'
+      cache: false
   format-check:
     command: 'cargo fmt --check'
+    deps: ['rust-toolchain']
   lint:
     command: 'cargo clippy --all-targets --locked -- -D warnings'
+    deps: ['rust-toolchain']
   typecheck:
     command: 'cargo check --all-targets --locked'
+    deps: ['rust-toolchain']
   test:
     command: 'cargo test --locked'
+    deps: ['rust-toolchain']
   build:
     command: 'cargo build --locked'
+    deps: ['rust-toolchain']
   # test-integration fica no noop do contrato: o cargo nao tem convencao unica para separar
   # integracao (feature, #[ignore], crate de testes). O projeto que tiver sobrescreve.
