@@ -1,0 +1,50 @@
+# release-please: cada merge na main abre/atualiza o Release PR (versao pelos Conventional
+# Commits). O merge do Release PR cria a tag vX.Y.Z (imutavel) e este workflow move a tag major
+# vX para ela. Apps que estendem por .../vX/... recebem a correcao sem PR no repo deles.
+name: release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - id: rp
+        # v5.0.0
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Move a tag major para o release
+        if: ${{ steps.rp.outputs.release_created == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.rp.outputs.tag_name }}
+          MAJOR: ${{ steps.rp.outputs.major }}
+          SHA: ${{ steps.rp.outputs.sha }}
+        run: |
+          set -euo pipefail
+          # So release estavel move a major: pre-release (v2.0.0-rc.1) nao vira v2.
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::notice::$TAG e pre-release; v$MAJOR fica onde esta."
+            exit 0
+          fi
+          if gh api "repos/$REPO/git/ref/tags/v$MAJOR" >/dev/null 2>&1; then
+            gh api -X PATCH "repos/$REPO/git/refs/tags/v$MAJOR" -f sha="$SHA" -F force=true >/dev/null
+          else
+            gh api -X POST "repos/$REPO/git/refs" -f ref="refs/tags/v$MAJOR" -f sha="$SHA" >/dev/null
+          fi
+          echo "### v$MAJOR -> $TAG (\`${SHA:0:7}\`)" >> "$GITHUB_STEP_SUMMARY"
