@@ -1,6 +1,6 @@
 # moon-platform
 
-Config compartilhada do [moon](https://moonrepo.dev) da plataforma BeGrowth (CI/CD v3): o contrato de tasks, os presets por linguagem, o SAST baseline e o fragmento de workspace. Os repos de app **não copiam** estes arquivos: estendem por URL, pinando uma tag.
+Config compartilhada do [moon](https://moonrepo.dev) da plataforma BeGrowth (CI/CD v3): o contrato de tasks, os presets por linguagem, o SAST baseline e o fragmento de workspace. Os repos de app **não copiam** estes arquivos: estendem por URL, na tag major (`v1`) ou numa versão exata.
 
 > O repo é público de propósito. O conteúdo é só definição de task, sem segredo, e o `extends` do moon não tem como autenticar sem pôr credencial em arquivo versionado (ver "Por que público").
 
@@ -9,7 +9,7 @@ Config compartilhada do [moon](https://moonrepo.dev) da plataforma BeGrowth (CI/
 `.moon/workspace.yml`:
 
 ```yaml
-extends: 'https://raw.githubusercontent.com/be-growth/moon-platform/v1.0.0/workspace.yml'
+extends: 'https://raw.githubusercontent.com/be-growth/moon-platform/v1/workspace.yml'
 
 projects:
   globs: ['services/*', 'libs/*', '!**/*.md']
@@ -21,7 +21,7 @@ Um stub em `.moon/tasks/` por arquivo da plataforma que o repo usa. Cada um tem 
 
 ```yaml
 # .moon/tasks/platform-all.yml
-extends: 'https://raw.githubusercontent.com/be-growth/moon-platform/v1.0.0/tasks/all.yml'
+extends: 'https://raw.githubusercontent.com/be-growth/moon-platform/v1/tasks/all.yml'
 ```
 
 `all.yml` e `baseline.yml` são obrigatórios. Os outros entram conforme o repo: `deployable.yml` se tem imagem, e o preset da linguagem.
@@ -56,11 +56,18 @@ Ele falha quando alguma URL não responde 2xx ou vem vazia, quando os stubs apon
 
 ## Versões
 
-- **Tag por release** (`vX.Y.Z`). Os apps pinam a tag; a branch `main` nunca entra numa URL de `extends`.
-- **Tag não se move.** Correção = tag nova. O `raw.githubusercontent.com` faz cache por alguns minutos e o moon guarda a resposta em `.moon/cache/temp/`, então mover uma tag dá resultados diferentes conforme a máquina.
-- **Atualizar um app** = trocar a tag em todas as URLs do `.moon/` no mesmo PR (a guarda reprova versões misturadas).
-- Mudança que quebra o contrato (task renomeada, preset que passa a falhar onde antes passava) sobe o major.
+| Tag | Quem cria | Move? |
+|---|---|---|
+| `vX.Y.Z` | release-please, no merge do Release PR | Nunca |
+| `vX` (ex.: `v1`) | `release.yml`, logo após cada release estável `vX.Y.Z` | Sim: sempre a última `vX.Y.Z` |
+
+- **Release:** cada merge na `main` abre ou atualiza o Release PR, com a versão tirada dos Conventional Commits (`fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE` → major). O merge do Release PR cria a tag, o GitHub Release e move a major. Não crie tag à mão nem edite `CHANGELOG.md`/`.release-please-manifest.json`.
+- **App na major (`.../v1/...`), o recomendado:** recebe correções e features sem PR no repo dele. Mudança que quebra o contrato (task renomeada, preset que passa a falhar onde antes passava) sobe o major, e o app só a recebe ao trocar `v1` por `v2`.
+- **App na versão exata (`.../v1.0.3/...`):** congela a config; atualizar é trocar a tag em todas as URLs do `.moon/` no mesmo PR. Use para isolar um app de uma mudança.
+- **A guarda reprova versões misturadas:** todas as URLs do `.moon/` de um repo usam a mesma ref.
+- **Cache de 24h na máquina do dev.** O moon guarda cada `extends` remoto em `.moon/cache/temp/` e só baixa de novo depois de 24h (medido no 2.5.5). Depois que a major move, a máquina do dev pode rodar a config anterior por até um dia; `rm -rf .moon/cache/temp` força o download. O CI começa sem esse cache. O `raw.githubusercontent.com` também segura a resposta por alguns minutos.
+- **Piso por BU:** o `moon-setup` do `<bu>/github-actions` resolve a major para a `vX.Y.Z` que ela aponta e reprova abaixo do `moon-platform-min` do `platform-env`.
 
 ## Por que público
 
-O `extends` do moon só aceita caminho local ou URL HTTPS, sem mecanismo de autenticação. Repo privado exigiria `https://user:token@...` no `.moon/` de cada app: o token iria para o histórico de todos os repos, e o moon imprime a URL inteira, com a senha, nas mensagens de erro. Público e com tag imutável, ninguém precisa de credencial, e alterar o conteúdo continua exigindo PR aqui.
+O `extends` do moon só aceita caminho local ou URL HTTPS, sem mecanismo de autenticação. Repo privado exigiria `https://user:token@...` no `.moon/` de cada app: o token iria para o histórico de todos os repos, e o moon imprime a URL inteira, com a senha, nas mensagens de erro. Público, ninguém precisa de credencial, e alterar o conteúdo continua exigindo PR aqui.
