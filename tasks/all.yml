@@ -29,22 +29,27 @@ tasks:
   typecheck:
     description: 'Static analysis: typecheck / analise estatica.'
     command: 'noop'
-    deps: ['^:sources']
+    # cacheStrategy hash: o hash do sources da lib entra no hash desta task. Sem isso o moon
+    # 2.5.5 ignora a dep (noop, sem outputs) e, na maquina do dev, o dependente sai do cache
+    # com o resultado antigo quando so a lib mudou. O CI comeca sem cache e nao sentia.
+    deps: &libs
+      - target: '^:sources'
+        cacheStrategy: 'hash'
   test:
     description: 'Unit tests.'
     command: 'noop'
-    deps: ['^:sources']
+    deps: *libs
   sast:
-    description: 'SAST extra do projeto. O baseline da plataforma (gitleaks + trivy) roda fora do moon e nao pode ser desligado.'
+    description: 'SAST extra do projeto. Soma ao baseline da plataforma (secrets-scan e deps-scan, em tasks/baseline.yml), nao substitui.'
     command: 'noop'
   build:
     description: 'Build do artefato (nao e o docker build: esse e da plataforma).'
     command: 'noop'
-    deps: ['^:sources']
+    deps: *libs
   test-integration:
     description: 'Integration tests (dependencias reais: banco, fila...). A infra vem de deps do projeto.'
     command: 'noop'
-    deps: ['^:sources']
+    deps: *libs
   test-e2e:
     description: 'E2E tests (sistema de ponta a ponta: varios processos, UI). A infra vem de deps do projeto.'
     command: 'noop'
