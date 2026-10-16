@@ -14,6 +14,8 @@ vcs:
       # Formatacao e lint so dos projetos afetados pelo que esta staged. Sem testes: o commit
       # tem que ser rapido.
       - 'moon run :format-check :lint --affected --status staged'
+      # Marcador de lib nos servicos dependentes (ver lib-deps em tasks/baseline.yml), ja no commit.
+      - 'moon run :lib-deps && git add -A -- ":(glob)**/.lib-deps"'
     # Conventional Commits. Embutido aqui porque o repo do app nao tem copia local de script
     # nenhum da plataforma. Mesma lista de tipos do pr-checks.yaml -- mantenha as duas iguais.
     # Aceita tambem as mensagens que o proprio git gera (merge, revert, fixup!/squash!/amend!).

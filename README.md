@@ -28,9 +28,9 @@ extends: 'https://raw.githubusercontent.com/be-growth/moon-platform/v1/tasks/all
 
 | Arquivo | Herdado por | Conteúdo |
 |---|---|---|
-| `workspace.yml` | o `.moon/workspace.yml` do app | `vcs` (git, GitHub, `main`), hooks locais (`pre-commit`: `format-check` + `lint` do staged; `commit-msg`: Conventional Commits) e `pipeline.installDependencies: false` |
+| `workspace.yml` | o `.moon/workspace.yml` do app | `vcs` (git, GitHub, `main`), hooks locais (`pre-commit`: `format-check` + `lint` do staged e `lib-deps`; `commit-msg`: Conventional Commits) e `pipeline.installDependencies: false` |
 | `tasks/all.yml` | todo projeto | Tasks do contrato em `noop` + `implicitInputs` + a interna `sources` |
-| `tasks/baseline.yml` | só o projeto na raiz | `secrets-scan` (gitleaks) e `deps-scan` (`trivy fs`). Não sobrescreva |
+| `tasks/baseline.yml` | só o projeto na raiz | `secrets-scan` (gitleaks) e `deps-scan` (`trivy fs`). Não sobrescreva. E `lib-deps`: escreve `<serviço>/.lib-deps` com o hash das libs de cada `deployable`, para o release-please versionar o serviço quando só a lib muda (exige `jq`) |
 | `tasks/deployable.yml` | tag `deployable` | Marcador `package`: quem vira imagem |
 | `tasks/go.yml` | tag `go` | gofmt, `go vet`, `go build`, `go test` |
 | `tasks/python-uv.yml` | tag `python-uv` | ruff, mypy, pytest, `uv build` |
