@@ -51,3 +51,43 @@ tasks:
     options:
       cache: false
       runInCI: 'always'
+
+  # Nao e varredura: mora aqui porque, como o baseline, e do projeto raiz e vale para o repo todo.
+  # O release-please so versiona um servico quando o commit altera arquivo dentro da pasta dele.
+  # Um PR que mexe so numa lib rebuilda os dependentes e leva para stg, mas nenhum ganha release.
+  # Esta task escreve <servico>/.lib-deps com o hash de cada lib da qual o projeto `deployable`
+  # depende diretamente (as mesmas arestas que disparam o rebuild): mudou a lib, muda o arquivo
+  # dentro do servico, e o squash do PR passa a contar para o release dele.
+  # Roda no pre-commit (workspace.yml); o ci.yaml do v3 roda de novo e reprova se algo mudar.
+  lib-deps:
+    description: 'Atualiza <servico>/.lib-deps (hash das libs de cada deployable) para o release-please versionar o servico quando uma lib muda.'
+    script: |
+      set -euo pipefail
+      if ! command -v jq >/dev/null; then
+        [ -z "${CI:-}" ] || { echo "lib-deps: jq ausente" >&2; exit 1; }
+        echo "lib-deps: jq nao instalado; marcadores nao atualizados (o CI confere)." >&2; exit 0
+      fi
+      cd "$MOON_WORKSPACE_ROOT"
+      # Hash do que esta no index (no pre-commit, e o que vai no commit). Fora: o que o release
+      # da propria lib reescreve e os marcadores (lib que depende de lib nao propaga, como no moon).
+      tree_hash() {
+        git ls-files -s -- "$1" ':(exclude)*/CHANGELOG.md' ':(exclude)*/version.txt' \
+          ':(exclude)*/.lib-deps' | git hash-object --stdin
+      }
+      moon query projects | jq -r '
+        (.projects | map({(.id): .source}) | add) as $src
+        | .projects[] | select((.config.tags // []) | index("deployable"))
+        | [.source, ([.dependencies // [] | .[] | $src[.id] | select(. != ".")] | sort | join(" "))]
+        | @tsv' |
+      while IFS=$'\t' read -r src deps; do
+        f="$src/.lib-deps"
+        if [ -z "$deps" ]; then rm -f "$f"; continue; fi
+        {
+          echo "# Gerado por 'moon run :lib-deps' (hook de pre-commit). Nao edite."
+          echo "# Muda quando uma lib deste servico muda, para o release-please versionar o servico."
+          for d in $deps; do echo "$d $(tree_hash "$d")"; done
+        } > "$f"
+      done
+    options:
+      cache: false
+      runInCI: true
