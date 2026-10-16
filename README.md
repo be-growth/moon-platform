@@ -65,7 +65,7 @@ Ele falha quando alguma URL não responde 2xx ou vem vazia, quando os stubs apon
 - **App na major (`.../v1/...`), o recomendado:** recebe correções e features sem PR no repo dele. Mudança que quebra o contrato (task renomeada, preset que passa a falhar onde antes passava) sobe o major, e o app só a recebe ao trocar `v1` por `v2`.
 - **App na versão exata (`.../v1.0.3/...`):** congela a config; atualizar é trocar a tag em todas as URLs do `.moon/` no mesmo PR. Use para isolar um app de uma mudança.
 - **A guarda reprova versões misturadas:** todas as URLs do `.moon/` de um repo usam a mesma ref.
-- **Cache de 24h na máquina do dev.** O moon guarda cada `extends` remoto em `.moon/cache/temp/` e só baixa de novo depois de 24h (medido no 2.5.5). Depois que a major move, a máquina do dev pode rodar a config anterior por até um dia; `rm -rf .moon/cache/temp` força o download. O CI começa sem esse cache. O `raw.githubusercontent.com` também segura a resposta por alguns minutos.
+- **Cache de 24h na máquina do dev.** O moon guarda cada `extends` remoto em `.moon/cache/temp/` e só baixa de novo depois de 24h (medido no 2.5.5). Depois que a major move, a máquina do dev pode rodar a config anterior por até um dia; `rm -rf .moon/cache` força o download. Apagar só `.moon/cache/temp` não basta: o moon também guarda as tasks resolvidas, e a `lib-deps` da v1.2.0 continuou ausente com o `extends` já baixado de novo. O CI começa sem esse cache. O `raw.githubusercontent.com` também segura a resposta por alguns minutos.
 - **Piso por BU:** o `moon-setup` do `<bu>/github-actions` resolve a major para a `vX.Y.Z` que ela aponta e reprova abaixo do `moon-platform-min` do `platform-env`.
 
 ## Por que público
