@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/be-growth/moon-platform/compare/v1.1.0...v1.2.0) (2026-10-16)
+
+
+### Features
+
+* **tasks:** lib-deps faz o PR que muda só a lib versionar os serviços dependentes [PLBG-1470] ([0d880e9](https://github.com/be-growth/moon-platform/commit/0d880e911fdd4c3e45fed8a8bdacc657d12cebd1))
+* **tasks:** lib-deps faz o PR que muda só a lib versionar os serviços dependentes [PLBG-1470] ([d227ace](https://github.com/be-growth/moon-platform/commit/d227acefc6d814ec39c54a10514d2ff904f8e966))
+
+
+### Bug Fixes
+
+* **tasks:** lib alterada invalida o cache local dos dependentes [PLBG-1470] ([b2cf23f](https://github.com/be-growth/moon-platform/commit/b2cf23fc5f37c7e14b3250f12519130750e4a965))
+* **tasks:** lib alterada invalida o cache local dos dependentes [PLBG-1470] ([8a7b090](https://github.com/be-growth/moon-platform/commit/8a7b09079fd5bfe83f0f374aa0a948526455c4fc))
+
 ## [1.1.0](https://github.com/be-growth/moon-platform/compare/v1.0.2...v1.1.0) (2026-10-14)
 
 
