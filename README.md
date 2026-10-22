@@ -35,6 +35,7 @@ extends: 'https://raw.githubusercontent.com/be-growth/moon-platform/v1/tasks/all
 | `tasks/go.yml` | tag `go` | gofmt, `go vet`, `go build`, `go test` |
 | `tasks/python-uv.yml` | tag `python-uv` | ruff, mypy, pytest, `uv build` |
 | `tasks/node-pnpm.yml` | tag `node-pnpm` | `pnpm install` + scripts do `package.json` |
+| `tasks/node-npm.yml` | tag `node-npm` | `npm ci` na raiz (uma vez, para todo o workspace npm) + scripts do `package.json` |
 | `tasks/rust-cargo.yml` | tag `rust-cargo` | `cargo fmt --check`, clippy `-D warnings`, `cargo check`, `cargo test`, `cargo build`, todas depois de `rust-toolchain` (`rustup toolchain install` com `mutex`: instala o toolchain uma vez, antes do cargo em paralelo) |
 
 O contrato, as armadilhas do moon 2.5.5 e o fluxo do CI estão no README da branch `v3` do `<bu>/github-actions` e em `platform-docs/platform/developer-guide/cicd-v3.md`.

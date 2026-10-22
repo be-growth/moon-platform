@@ -55,7 +55,7 @@ for t in secrets-scan deps-scan; do
 done
 
 # Presets por tag: projeto com a tag tem `test` de verdade, a menos que o moon.yml dele desligue.
-for tag in go python-uv node-pnpm rust-cargo; do
+for tag in go python-uv node-pnpm node-npm rust-cargo; do
   while read -r p; do
     [ -n "$p" ] || continue
     own="$(jq -r --arg p "$p" '.projects[] | select(.id == $p) | .config.tasks.test.command // empty' <<<"$projects")"

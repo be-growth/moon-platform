@@ -1,0 +1,51 @@
+# Preset Node + npm. Liga com `tags: ['node-npm']` no moon.yml do projeto (o package.json dele).
+# O lockfile fica na raiz do repo: no workspace npm (`workspaces` no package.json da raiz) e no
+# repo de um projeto so, onde raiz e projeto sao o mesmo diretorio. O npm roda os scripts de
+# dentro do projeto e acha o node_modules do workspace sozinho.
+# Delega para os scripts do package.json; script ausente = no-op (--if-present).
+# Override: `command:` troca a linha inteira (mergeArgs: replace); desligar = `command: 'noop'`.
+inheritedBy:
+  tags: ['node-npm']
+  order: 10
+
+# Manifesto e lock do workspace na raiz: mudar dependencia afeta todo projeto npm.
+implicitInputs:
+  - '/package.json'
+  - '/package-lock.json'
+  - '!node_modules/**'
+
+taskOptions:
+  mergeArgs: 'replace'
+
+tasks:
+  # Um `npm ci` so, na raiz, para todos os projetos. O `npm ci` apaga o node_modules antes de
+  # instalar: rodado por projeto, um apagaria o do outro no meio dos testes. O mutex serializa este
+  # passo e o primeiro projeto instala; os demais encontram o node_modules/.package-lock.json (que
+  # o npm grava no fim da instalacao) mais novo que o lockfile e pulam.
+  install:
+    script: '[ node_modules/.package-lock.json -nt package-lock.json ] || npm ci --no-audit --no-fund'
+    options:
+      runFromWorkspaceRoot: true
+      mutex: 'npm-install'
+      cache: false
+  format-check:
+    command: 'npm run --if-present format:check'
+    deps: ['~:install']
+  lint:
+    command: 'npm run --if-present lint'
+    deps: ['~:install']
+  typecheck:
+    command: 'npm run --if-present typecheck'
+    deps: ['~:install']
+  test:
+    command: 'npm run --if-present test'
+    deps: ['~:install']
+  build:
+    command: 'npm run --if-present build'
+    deps: ['~:install']
+  test-integration:
+    command: 'npm run --if-present test:integration'
+    deps: ['~:install']
+  test-e2e:
+    command: 'npm run --if-present test:e2e'
+    deps: ['~:install']

@@ -4,7 +4,7 @@
 # Para mudar o comando de uma task, sobrescreva no moon.yml do projeto.
 #
 # Toda task nasce `noop` (placeholder nativo do moon: sai 0 sem rodar nada).
-# O projeto liga um preset por tag (python-uv, go, node-pnpm) ou sobrescreve a task no moon.yml.
+# O projeto liga um preset por tag (python-uv, go, node-pnpm, node-npm) ou sobrescreve a task no moon.yml.
 inheritedBy:
   order: 0
 
