@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/be-growth/moon-platform/compare/v1.2.0...v1.3.0) (2026-10-22)
+
+
+### Features
+
+* **tasks:** preset node-npm para projetos com npm e workspace npm [PLBG-1470] ([cccccf1](https://github.com/be-growth/moon-platform/commit/cccccf177032d0dd4736e88e532b2d098e25a0a6))
+* **tasks:** preset node-npm para projetos com npm e workspace npm [PLBG-1470] ([7282178](https://github.com/be-growth/moon-platform/commit/72821789d8fdf94dbed3b9daa0976be4a15f48c8))
+
 ## [1.2.0](https://github.com/be-growth/moon-platform/compare/v1.1.0...v1.2.0) (2026-10-16)
 
 
