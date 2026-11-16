@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/be-growth/moon-platform/compare/v1.3.0...v1.3.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **hooks:** pre-commit não falha em repo sem nenhum .lib-deps [PLBG-1470] ([3a6e754](https://github.com/be-growth/moon-platform/commit/3a6e754bbc0673e09d56d5c11bd3fac71dd82b6a))
+* **hooks:** pre-commit não falha em repo sem nenhum .lib-deps [PLBG-1470] ([83681cf](https://github.com/be-growth/moon-platform/commit/83681cf73c4c5cfdfc439b2e6503025f35ea804d))
+
 ## [1.3.0](https://github.com/be-growth/moon-platform/compare/v1.2.0...v1.3.0) (2026-10-22)
 
 
