@@ -9,12 +9,15 @@ inheritedBy:
   order: 0
 
 # Sem inputs explicitos, task de projeto na raiz (repo standalone) nunca e "afetada"
-# e o `moon ci` a pula calado. CHANGELOG.md e version.txt ficam de fora para o merge
-# do Release PR nao disparar rebuild.
+# e o `moon ci` a pula calado. CHANGELOG.md, version.txt e .release-please-manifest.json
+# ficam de fora para o merge do Release PR nao disparar rebuild: os tres sao o que o commit
+# do release-please altera. Sem o manifest, o projeto da raiz de um repo com um servico so
+# saia afetado nesse merge, e o cd reconstruia a imagem em vez de promover a de stg.
 implicitInputs:
   - '**/*'
   - '!CHANGELOG.md'
   - '!version.txt'
+  - '!.release-please-manifest.json'
 
 taskOptions:
   runInCI: true
