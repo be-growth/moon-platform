@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2](https://github.com/be-growth/moon-platform/compare/v1.3.1...v1.3.2) (2026-11-19)
+
+
+### Bug Fixes
+
+* **tasks:** o merge do Release PR não reconstrói a imagem de repo com um serviço só [PLBG-1565] ([d1f759a](https://github.com/be-growth/moon-platform/commit/d1f759ae9ca24ba3239c2d5fc701a763f155c5b3))
+* **tasks:** o merge do Release PR não reconstrói a imagem de repo com um serviço só [PLBG-1565] ([faa949e](https://github.com/be-growth/moon-platform/commit/faa949ef7cf224abe6ddb39f184bfb4ab0aec86d))
+
 ## [1.3.1](https://github.com/be-growth/moon-platform/compare/v1.3.0...v1.3.1) (2026-11-16)
 
 
